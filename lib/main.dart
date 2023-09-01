@@ -1,49 +1,89 @@
+// ignore_for_file: unnecessary_import
+
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe_web/flutter_stripe_web.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Stripe Dart Test',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Stripe Dart Test - Home Page'),
+      title: 'Flutter Stripe Example',
+      home: PaymentForm(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-
+class PaymentForm extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _PaymentFormState createState() => _PaymentFormState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _PaymentFormState extends State<PaymentForm> {
+  late final Stripe _stripe;
+
+  @override
+  void initState() {
+    super.initState();
+    _stripe = Stripe(
+      publishableKey: '<YOUR_PUBLISHABLE_KEY>',
+      secretKey: '<YOUR_SECRET_KEY>',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text('Payment Form'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () => _pay(),
-          child: const Text('Pay Now'),
+        child: Column(
+          children: [
+            Card(
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'Card Number',
+                ),
+              ),
+            ),
+            Card(
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'CVV',
+                ),
+              ),
+            ),
+            Card(
+              child: TextField(
+                decoration: InputDecoration(
+                  labelText: 'Expiration Date',
+                ),
+              ),
+            ),
+            ElevatedButton(
+              child: Text('Pay'),
+              onPressed: () async {
+                final paymentMethod = await _stripe.createPaymentMethod(
+                  card: CardDetails(
+                    number: '4242424242424242',
+                    cvc: '123',
+                    expirationDate: '12/2023',
+                  ),
+                );
+
+                if (paymentMethod != null) {
+                  // Do something with the payment method.
+                }
+              },
+            ),
+          ],
         ),
       ),
     );
   }
-
-  Future<void> _pay() async {}
 }
